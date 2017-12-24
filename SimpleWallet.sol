@@ -42,6 +42,5 @@ contract SimpleWallet is mortal {
 
     function () public payable {
         somebodyFunded (msg.sender, msg.value);
-    }
-    
+    } 
 }
