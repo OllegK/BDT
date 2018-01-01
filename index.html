@@ -5,29 +5,33 @@
     <script src="./lib/web3.min.js"></script>
     <script type="text/javascript">
         if (typeof web3 !== 'undefined') {
+            console.log('current provider is used');
             web3 = new Web3(web3.currentProvider); 
         } else {
+            console.log('new instance   ');
             web3 = new Web3(new Web3.providers.HttpProvider ('http://localhost:8545'));
         }
 
         var contract_address = "0xFF8Ba8Ad4BfA4278a191dBecB30bEA948EF495a5";
         var contract_abi = [ { "constant": false, "inputs": [], "name": "killme", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getCounter", "outputs": [ { "name": "", "type": "uint256", "value": "0" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [], "name": "decrease", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [], "name": "increase", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" } ];
-
-        //web3 = new Web3(new Web3.providers.HttpProvider ('http://localhost:8545'));
- 
+        var contract_instance = web3.eth.contract(contract_abi).at(contract_address);
 
         function getBalance(){
             document.getElementById('myBalance').innerText = web3.fromWei(web3.eth.getBalance(web3.eth.accounts[0]), 'ether');
         }
-
-        var contract_instance = web3.eth.contract(contract_abi).at(contract_address);
 
         function getCounter() {
             document.getElementById("myCounter").innerText = contract_instance.getCounter();//.toNumber();
         }
 
         function increaseCounter() {
-            contract_instance.increase();
+            var current_number = contract_instance.getCounter();
+            current_number++;
+
+            contract_instance.increase({from: web3.eth.accounts[0], gas: 200000}, function(err, result) {
+                console.log(arguments);
+            });
+
         }
 
 
