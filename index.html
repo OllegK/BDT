@@ -4,6 +4,12 @@
 <head>
     <script src="./lib/web3.min.js"></script>
     <script type="text/javascript">
+
+        var contract_address;
+        var contract_abi;
+        var contract_instance;
+
+        
         if (typeof web3 !== 'undefined') {
             console.log('current provider is used');
             web3 = new Web3(web3.currentProvider); 
@@ -12,9 +18,9 @@
             web3 = new Web3(new Web3.providers.HttpProvider ('http://localhost:8545'));
         }
 
-        var contract_address = "0xFF8Ba8Ad4BfA4278a191dBecB30bEA948EF495a5";
-        var contract_abi = [ { "constant": false, "inputs": [], "name": "killme", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getCounter", "outputs": [ { "name": "", "type": "uint256", "value": "0" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [], "name": "decrease", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [], "name": "increase", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" } ];
-        var contract_instance = web3.eth.contract(contract_abi).at(contract_address);
+        contract_address = "0xFF8Ba8Ad4BfA4278a191dBecB30bEA948EF495a5";
+        contract_abi = [ { "constant": false, "inputs": [], "name": "killme", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": true, "inputs": [], "name": "getCounter", "outputs": [ { "name": "", "type": "uint256", "value": "0" } ], "payable": false, "stateMutability": "view", "type": "function" }, { "constant": false, "inputs": [], "name": "decrease", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" }, { "constant": false, "inputs": [], "name": "increase", "outputs": [], "payable": false, "stateMutability": "nonpayable", "type": "function" } ];
+        contract_instance = web3.eth.contract(contract_abi).at(contract_address);
 
         function getBalance(){
             document.getElementById('myBalance').innerText = web3.fromWei(web3.eth.getBalance(web3.eth.accounts[0]), 'ether');
@@ -29,11 +35,35 @@
             current_number++;
 
             contract_instance.increase({from: web3.eth.accounts[0], gas: 200000}, function(err, result) {
-                console.log(arguments);
+                console.log(arguments); //wait for mined?
+                if (err) {
+                    console.error(err);
+                } else {
+                    var  txHash = result;
+                    console.log(txHash);
+                    callWhenMined(txHash, getCounter)
+                }
             });
 
         }
 
+        function callWhenMined (txHash, callback) {
+            console.log('callWhenMined called');
+            web3.eth.getTransactionReceipt(txHash, function(err, rcpt) {
+                if (err) {
+                    console.error(err)
+                } else {
+                    if (rcpt == null) {
+                        setTimeout(function(){
+                            callWhenMined(txHash, callback);
+                        }, 500);
+                    } else {
+                        console.log('mined....');
+                        callback();
+                    }
+                }
+            })
+        }
 
     </script>
 </head>
